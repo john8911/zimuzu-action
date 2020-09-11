@@ -1,0 +1,51 @@
+name: zimuzu
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+  schedule:
+    - cron: 0 */12 * * *
+  workflow_dispatch:
+  
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - name: Install Python
+      run: |
+        sudo apt update && \
+        sudo apt install python3 && \
+        sudo apt install python3-setuptools
+    - name: Login
+      run: |
+        ACCOUNT='${{ secrets.ACCOUNT }}'
+        PASSWORD='${{ secrets.PASSWORD }}'
+        echo ${ACCOUNT}
+        echo ${PASSWORD}
+        function urlEncode() {
+            python -c "
+        import urllib, commands, os;
+        var = commands.getoutput('echo \'$1\'');
+        var = urllib.quote_plus(var);
+        os.system('echo ' + var);"
+        }
+        DOMAIN="http://www.rrys2020.com/"
+        COOKIE="zimuzu.cookie"
+        REMEMBER="1"
+        REDIRECT="$DOMAIN/user/sign"
+        ExpectedResponseText='{"status":0,"info":"","data":0}'
+        RetryCount=1
+        curl -d "account=$(urlEncode $ACCOUNT)&password=$(urlEncode $PASSWORD)&remember=$(urlEncode $REMEMBER)&url_back=$(urlEncode $REDIRECT)" \
+            -c "$COOKIE" -s "$DOMAIN/User/Login/ajaxLogin"
+        echo ''
+        sleep 1
+        curl -s --cookie "$COOKIE" "$REDIRECT" > /dev/null
+        curl -s --cookie "$COOKIE" "$DOMAIN/user/login/getCurUserTopInfo"
+        echo ''
+        sleep 1
+        var=$(curl -s --cookie "$COOKIE" "$DOMAIN/user/user" | grep 'sp3">人人钻' | awk -F'[><]' '{print $5}')
+        v_date=$(date "+%Y-%m-%d %H:%M:%S")
+        echo $v_date 人人钻:$var
