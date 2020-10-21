@@ -25,10 +25,7 @@ jobs:
         PASSWORD='${{ secrets.PASSWORD }}'
         echo ${ACCOUNT}
         echo ${PASSWORD}
-import requests
-import json
-import time
-import random
+import requests, json, time, random;
 
 def main():
     # 登录,获取用户信息
